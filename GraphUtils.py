@@ -14,7 +14,7 @@ def setDbScale(data,ref):
 
 
 def ShowGraphs(listofData,titles=[],xlim=[0,0],ylim=[0,0],type="plot",freqNormalise = False,scales=[]):
-    "Show the graphs in a subplot, xlim and y lim can be specified, the default plot type is plot"
+    "Show the graphs in a subplot, xlim and y lim can be specified, the default plot type is plot, the FreqNormalise parameter modify the x axis to show the graph from 0 to 2pi"
     fig,graphs = plt.subplots(nrows=len(listofData),ncols=1,squeeze=False)
     for i in range(0,len(listofData)):
         N = len(listofData[i])
