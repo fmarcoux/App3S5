@@ -7,24 +7,15 @@ import GraphUtils
 
 
 def ReadWavfile(fullPath):
-    "read a wave file specified in fullpath and return the data(ndarray) and the sample rate(hz)"
+    "read a wave file specified in fullpath and return the sample rate(hz_ and the  data(ndarray)"
     if ".wav" not in fullPath:
         raise Exception("Specified file is not of a wav file")
     return wavfile.read(fullPath)
-
-def ExctractTemporalEnvelope(data):
-    "Exctract the temporal envelope of a discrete signal, returns the amplitude(ndarray) and the phase(ndarray)"
-    #redressage du signal
-    signalRedresse = abs(data)
-    plt.plot(signalRedresse)
-    plt.show()
-    return
 
 def FFT(data):
     "Compute the fft of the given signal and returns the magnitude and phase"
     ffts = np.fft.fft(data)
     return np.abs(ffts),np.angle(ffts)
-
 
 def HanningWindow(array):
     "Ajoute une window de type Hanning au signal en entre, retourne le signal transforme (ndarray)"
@@ -35,27 +26,27 @@ def HanningWindow(array):
     return array
 
 
-
 def computeRIF(N,sampleFrequence,cutoffFrequence):
     """calcul la reponse impulsionnel pour un filtre passe bas selon les parametres
-    (N = nombre de batonnet dans la reponse en frequence)
+    (N = nombre de coefficients du filtre passe bas)
     sampleFrequence = la frequence a laquelle le signal a ete echantillone
     cutofffrequence = la frequence de cutoff voulu
     retourne la reponse impulsionnel (ndarray)
     """
-    K = cutoffFrequence*N/sampleFrequence +1
+    K = 1+ cutoffFrequence*N/sampleFrequence
     reponseImpulsionnelle = [K/N]
     for i in range(1,N):
         reponseImpulsionnelle.append(singlePointreponseImpulsionnelle(i,K,N))
     return np.array(reponseImpulsionnelle)
 
 def singlePointreponseImpulsionnelle(n,K,N):
-    return (np.sin(np.pi*n*K/N)/np.sin(np.pi*n/N))/N
+    return np.sin(np.pi*n*K/N)/(N*np.sin(np.pi*n/N))
 
 
-def PaddZero(coefficients, nombredezero):
+def PaddZero(initialData, nombredezero):
+    "Padd les data dans initialData avec le nombre de zero specifie en parametre, retourne larray de data padde"
     zeros = np.array([0 for i in range(0,nombredezero)])
-    return np.hstack([coefficients,zeros])
+    return np.hstack([initialData,zeros])
 
 
 def computeNForFIRFilterOfTemporalEnvelope(nbCoefficientInitial,numberOfZeros):
@@ -75,3 +66,7 @@ def computeNForFIRFilterOfTemporalEnvelope(nbCoefficientInitial,numberOfZeros):
             break
         nbcoefficient = nbcoefficient + 1
     return nbcoefficient,magnitude,phase
+
+
+def GetCoefficient(N):
+    return [(1/N) for i in range(0,N)]

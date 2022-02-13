@@ -1,3 +1,5 @@
+import scipy.signal
+
 import BaseCode
 import os
 import numpy as np
@@ -9,11 +11,14 @@ if __name__ == '__main__':
     dir = "WaveFiles"
     fileName = "note_guitare_LAd.wav"
     fullpath = f'{workingDirectory}\\{dir}\\{fileName}'
+    #BaseCode.ComputeN()
+    fe,data = SPE.ReadWavfile(fullpath)
+    BaseCode.ExctractSinus(data)
+    #BaseCode.ComputeAndShowEnvelope(data)
+    #BaseCode.ExctractSinus(data)
+    #N,magnitude,phase = SPE.computeNForFIRFilterOfTemporalEnvelope(nbCoefficientInitial=893,numberOfZeros=100000)
 
-    N,magnitude,phase = SPE.computeNForFIRFilterOfTemporalEnvelope(nbCoefficientInitial=893,numberOfZeros=100000)
-
-    print("Nombre de parametre pour l'enveloppe temporelle = ",N)
-    GraphUtils.ShowGraphs([magnitude,phase],freqNormalise=True,xlim=[0, np.pi/500])
+    #GraphUtils.ShowGraphs([magnitude,phase],freqNormalise=True,xlim=[0, np.pi/500])
 
     #sampleRate, data = SPE.ReadWavfile(fullpath)
     #magn,angle = SPE.FFT(data)
