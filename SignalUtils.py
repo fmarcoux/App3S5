@@ -49,23 +49,20 @@ def PaddZero(initialData, nombredezero):
     return np.hstack([initialData,zeros])
 
 
-def computeNForFIRFilterOfTemporalEnvelope(nbCoefficientInitial,numberOfZeros):
+def computeNForFIRFilterOfTemporalEnvelope():
     "Calcul le nombre de paramètre de notre filtre pour avoir un gain de -3dB a pi/1000"
-    gain =0.00
-    nbcoefficient =nbCoefficientInitial
-    while( gain !=-3):
-        coefficient = [(1/nbcoefficient) for i in range(0,nbcoefficient)]
-        coefficient = PaddZero(coefficient,numberOfZeros)
-        magnitude,phase =FFT(coefficient)
-        magnitude = GraphUtils.setDbScale(magnitude,magnitude[0])
-        indexpisur1000 = round(len(magnitude)/(2*1000))
-        gain = magnitude[indexpisur1000]
-        print("nombre de coefficients : ",nbcoefficient,"\nindexpisur1000",indexpisur1000,"valeur en Db a pi sur 1000", gain)
+    K =1
+    wbar = np.pi/1000
+    targetGain = -3
+    gain=1
+    is_in_margin = lambda gain:not(targetGain-0.001 < gain<targetGain+0.001)
+    while is_in_margin(gain):
+        gain = (1/K)*np.sin(wbar*K/2)/np.sin(wbar/2)
+        print(f"K : {K}")
+        print(f"Gain : {gain}")
+        K += 1
 
-        if(gain<-3.0001):
-            break
-        nbcoefficient = nbcoefficient + 1
-    return nbcoefficient,magnitude,phase
+
 
 
 def GetCoefficient(N):

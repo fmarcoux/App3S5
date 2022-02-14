@@ -1,10 +1,11 @@
 import scipy.signal
-
+import matplotlib.pyplot as plt
 import BaseCode
 import os
 import numpy as np
 import GraphUtils
 import SignalUtils as SPE
+from scipy.io.wavfile import write
 
 if __name__ == '__main__':
     workingDirectory = os.getcwd()
@@ -13,7 +14,13 @@ if __name__ == '__main__':
     fullpath = f'{workingDirectory}\\{dir}\\{fileName}'
     #BaseCode.ComputeN()
     fe,data = SPE.ReadWavfile(fullpath)
-    BaseCode.ExctractSinus(data)
+    #magnitude,phase = SPE.FFT(data)
+    #BaseCode.ComputeN()
+    enveloppeTemporelle = BaseCode.ComputeAndShowEnvelope(data)
+    note = np.array(BaseCode.ExctractSinus(data,fe,enveloppe=enveloppeTemporelle))
+    #GraphUtils.ShowGraphs([note])
+    # Write the samples to a file
+    write("note.wav", 44100,note.astype(np.float64))
     #BaseCode.ComputeAndShowEnvelope(data)
     #BaseCode.ExctractSinus(data)
     #N,magnitude,phase = SPE.computeNForFIRFilterOfTemporalEnvelope(nbCoefficientInitial=893,numberOfZeros=100000)
