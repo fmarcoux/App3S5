@@ -6,8 +6,6 @@ def convert_to_decibel(arr,ref):
     ref = ref
     if arr != 0:
         return 20 * np.log10(abs(arr) / ref)
-    else:
-        return -60
 
 def setDbScale(data,ref):
     return [convert_to_decibel(n,ref) for n in data]

@@ -49,7 +49,7 @@ if __name__ == '__main__':
 
     echantillon = len(data)
     N = 6000
-    K = int((2 * 40 * N/fe + 1))
+    K = int(((2 * 40 * N/fe) + 1))
     axen = np.arange(-N / 2, N / 2)
     axem = np.arange(-echantillon / 2, echantillon / 2)
 
@@ -67,8 +67,8 @@ if __name__ == '__main__':
 
 
     halfh2 = h2info[3000:5999]
-    sonclair = np.convolve(halfh2, data)
+    sonclair = np.convolve(h2info, data)
     for i in range(0, 8):
-        sonclair = np.convolve(sonclair, halfh2)
+        sonclair = np.convolve(sonclair, h2info)
 
     write("sonclair.wav", fe, sonclair)

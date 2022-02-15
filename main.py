@@ -1,45 +1,61 @@
-import scipy.signal
-import matplotlib.pyplot as plt
 import BaseCode
 import os
-import numpy as np
+import matplotlib.pyplot as plt
 import GraphUtils
-import SignalUtils as SPE
-from scipy.io.wavfile import write
+import GraphUtils as GU
+import SignalUtils
+import SignalUtils as SU
+import numpy as np
+import scipy.io.wavfile as wav
 
 if __name__ == '__main__':
+
     workingDirectory = os.getcwd()
     dir = "WaveFiles"
     fileName = "note_guitare_LAd.wav"
     fullpath = f'{workingDirectory}\\{dir}\\{fileName}'
     #BaseCode.ComputeN()
-    fe,data = SPE.ReadWavfile(fullpath)
-    #magnitude,phase = SPE.FFT(data)
-    #BaseCode.ComputeN()
-    enveloppeTemporelle = BaseCode.ComputeAndShowEnvelope(data)
-    note = np.array(BaseCode.ExctractSinus(data,fe,enveloppe=enveloppeTemporelle))
-    #GraphUtils.ShowGraphs([note])
-    # Write the samples to a file
-    write("note.wav", 44100,note.astype(np.float64))
-    #BaseCode.ComputeAndShowEnvelope(data)
-    #BaseCode.ExctractSinus(data)
-    #N,magnitude,phase = SPE.computeNForFIRFilterOfTemporalEnvelope(nbCoefficientInitial=893,numberOfZeros=100000)
+    Fs,data = SU.ReadWavfile(fullpath)
 
-    #GraphUtils.ShowGraphs([magnitude,phase],freqNormalise=True,xlim=[0, np.pi/500])
+    enveloppe = BaseCode.ComputeEnvelope(886,abs(data))
+    enveloppe = enveloppe[0:160000]
 
-    #sampleRate, data = SPE.ReadWavfile(fullpath)
-    #magn,angle = SPE.FFT(data)
-    #GraphUtils.ShowGraphs([magn,angle],titles=["magnitude","angles"],freqNormalise=True)
+    N = len(data)
+    print(f"{N}, {Fs}")
+    indexs,gain,phase = BaseCode.Exctract32Sinus(data)
+    # calcul parametres sinus
+    freq_32 = []
+    phase_32 = []
+    mag_32 = []
+
+    for i in range(0, 32):
+        freq_32.append((indexs[i]) / (N / Fs))
+        phase_32.append(phase[(indexs[i])])
+        mag_32.append(gain[(indexs[i])])
+    print(f"Frequence {freq_32} \n phase {phase_32} \n gain {mag_32}")
+
+    temps = np.arange(0, N/Fs, 1/Fs)
+
+    LADiese =SU.CropForOutput(SU.AddEnveloppeTemporrel(enveloppe,SU.CreateSound(freq_32,mag_32,phase_32,1,temps)))
+    SOL = SU.CropForOutput(SU.AddEnveloppeTemporrel(enveloppe,SU.CreateSound(freq_32,mag_32,phase_32,0.841,temps)))
+    MiB = SU.CropForOutput(SU.AddEnveloppeTemporrel(enveloppe,SU.CreateSound(freq_32,mag_32,phase_32,0.667,temps)))
+    Silence = SU.CropForOutput(np.zeros(N))
+    Fa = SU.CropForOutput(SU.AddEnveloppeTemporrel(enveloppe,SU.CreateSound(freq_32,mag_32,phase_32,0.749,temps)))
+    Re = SU.CropForOutput(SU.AddEnveloppeTemporrel(enveloppe,SU.CreateSound(freq_32,mag_32,phase_32,0.630,temps)))
+
+    bethoven = []
+    bethoven.extend(SOL)
+    bethoven.extend(SOL)
+    bethoven.extend(SOL)
+    bethoven.extend(MiB)
+    bethoven.extend(Silence)
+    bethoven.extend(Fa)
+    bethoven.extend(Fa)
+    bethoven.extend(Fa)
+    bethoven.extend(Re)
+    GU.ShowGraphs([bethoven])
+    signalSortie = np.array(bethoven)
+    wav.write("bethoven.wav",Fs,signalSortie.astype(np.float32))
 
 
-    #reponseImpulsionnel = SPE.computeRIF(159,sampleRate,22.05)
-    #GraphUtils.ShowGraphs([reponseImpulsionnel],type="stem",scales=["log"])
-
-    #GraphUtils.ShowGraphs([data],freqNormalise=True,freqEchantillonage=sampleRate)
-    #frequenceNormalisepisur1000 = sampleRate/2*1000
-    #print("frequence de coupure pi sur 1000",frequenceNormalisepisur1000,"\n frequence dechantillonage",sampleRate)
-    #SPE.computeRIF(10,)
-    #BaseCode.ExctractEnvelope(data)
-    #data = SPE.HanningWindow(data)
-    #magn,angle= SPE.FFT(data)
 

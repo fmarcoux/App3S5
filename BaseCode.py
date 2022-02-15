@@ -1,21 +1,27 @@
+import scipy
 
 import GraphUtils as GU
+import SignalUtils
 import SignalUtils as SPE
 import numpy as np
-import scipy
 
 def ComputeN():
     print(SPE.computeNForFIRFilterOfTemporalEnvelope())
 
-def ComputeAndShowEnvelope(data):
-    reponseImpulsionnel = SPE.GetCoefficient(886)
-    tailleVecteurFinale = len(reponseImpulsionnel) + len(data) - 1
-    dataPadde = SPE.PaddZero(abs(data), tailleVecteurFinale - len(data))
-    reponseImpulsionnelPadde = SPE.PaddZero(reponseImpulsionnel, tailleVecteurFinale - len(reponseImpulsionnel))
-    enveloppeTemporelle = np.convolve(reponseImpulsionnelPadde, dataPadde)
+def ComputeEnvelope(K,data):
+    K = 886
+    h = SignalUtils.GetCoefficient(K)
+    return np.convolve(data, h)
+
+
+    #reponseImpulsionnel = SPE.GetCoefficient(886)
+    #tailleVecteurFinale = len(reponseImpulsionnel) + len(data) - 1
+    #dataPadde = SPE.PaddZero(abs(data), tailleVecteurFinale - len(data))
+    #reponseImpulsionnelPadde = SPE.PaddZero(reponseImpulsionnel, tailleVecteurFinale - len(reponseImpulsionnel))
+    #enveloppeTemporelle = np.convolve(reponseImpulsionnelPadde, dataPadde)
     #GU.ShowGraphs([enveloppeTemporelle, abs(data)], xlim=[0, 160000])
     #GU.ShowOnSameGraph([enveloppeTemporelle, abs(data)], xlim=[0, 160000])
-    return enveloppeTemporelle
+
 
 def constructNote(sinus,enveloppeTemporel):
     longeur = len(enveloppeTemporel-1)
@@ -31,30 +37,19 @@ def constructNote(sinus,enveloppeTemporel):
     return dataNote
 
 
-def ExctractSinus(data,samplerate,enveloppe):
+def Exctract32Sinus(data):
     dataFenetre = SPE.HanningWindow(data)
-    #GU.ShowGraphs([dataFenetre])
-    gain,phase = SPE.FFT(dataFenetre)
-    #GU.ShowGraphs([gain,phase],log=True)
-    sinus = Exctract32sinus(gain,phase,samplerate)
-    constructNote(sinus,enveloppe)
-    return
+    GU.ShowGraphs([dataFenetre])
+    response = np.fft.fft(dataFenetre)
+    responseDb = 20*np.log10(np.abs(response))
+    angle = np.angle(response)
+    peaks = scipy.signal.find_peaks(responseDb, distance=1690)
+    peaks32 = peaks[0][0:32]
+    return peaks32,np.abs(response),angle
 
 
-def Keep32(gainSup):
-    sorted_by_second = sorted(gainSup, key=lambda tup: tup[1])
-    L = len(sorted_by_second)
-    return sorted_by_second[L-32:L]
 
-def Exctract32sinus(magnitude,phase,samplerate):
-    gainSup = []
-    #Puisqu'on a le complexe comjuge d'un cote te de lautre, on analyse seulement la moité des amplitude
-    for n in range(0,round(len(magnitude)/2)):
-        if magnitude[n] >0:
-            gainSup.append((n*samplerate/len(magnitude),magnitude[n],phase[n]))
-    sin32 = Keep32(gainSup)
 
-    print("Nombre de sinus : ",len(sin32), "\n (Hz,Gain,phase) : ",sin32)
-    return sin32
+
 
 
