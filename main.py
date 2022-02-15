@@ -71,7 +71,7 @@ if __name__ == '__main__':
     beethoven.extend(SU.CropForOutput(Fa))
     beethoven.extend(SU.CropForOutput(Fa))
     beethoven.extend(SU.CropForOutput(Re))
-    GU.ShowGraphs([beethoven])
+    #GU.ShowGraphs([beethoven])
     wav.write("AudioSynthese\\Beethoven.wav", Fs, np.array(beethoven).astype(np.float32))
 
     CoupeBande.CoupeBande()

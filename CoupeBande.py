@@ -33,11 +33,13 @@ def defineDirac(n):
     return d
 
 
-def graphReponseFreq(x, y, type):
+def graphReponseFreq(x, y, type,xlim=[0,0]):
     plt.plot(x, y)
     plt.xlabel('Fréquence (Hz)')
     plt.ylabel('Gain filtre du ' + type + ' (dB)')
     plt.title('Réponse frequence ' + type)
+    if xlim!= [0,0]:
+        plt.xlim(xlim)
     plt.show()
 
 
@@ -56,13 +58,13 @@ def CoupeBande():
 
     hinfo = reponseImpFiltrePB(N, axen, K)
     Hinfo = np.fft.fftshift(np.fft.fft(hinfo, echantillon))
-    graphReponseFreq(axeFrequence, 20 * np.log10(np.abs(Hinfo)), "passe-bas")
+    graphReponseFreq(axeFrequence, 20 * np.log10(np.abs(Hinfo)), "passe-bas",[0,100])
 
     # h2 = d - 2*(1 / N * (np.sin(np.pi*axen*K / N) / ( np.sin(np.pi*axen / N)))) * np.cos(axen * 1000*np.pi*2 / fe)
     h2info = tranfoPBastoCBande(hinfo, N, d)
 
     H2 = np.fft.fftshift(np.fft.fft(h2info, echantillon))
-    graphReponseFreq(axeFrequence, 20 * np.log10(np.abs(H2)), "coupe-bande")
+    graphReponseFreq(axeFrequence, 20 * np.log10(np.abs(H2)), "coupe-bande",[0,2000])
 
     son = SignalUtils.HanningWindow(data)
     sonclair = np.convolve(h2info, son)
