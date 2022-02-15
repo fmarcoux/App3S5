@@ -2,6 +2,7 @@ import numpy as np
 import os
 from scipy.io.wavfile import write
 import GraphUtils
+import SignalUtils
 import SignalUtils as SPE
 import matplotlib.pyplot as plt
 
@@ -20,7 +21,7 @@ def reponseImpFiltrePB(N, n, K):
 def tranfoPBastoCBande(hpb, N, d):
     hcb = []
     for i in range(0, N):
-        hcb.append(d[i] - 2 * hpb[i] * np.cos(0.14248 * i))
+        hcb.append(d[i] - (2 * hpb[i] * np.cos(0.14248 * i)))
     return hcb
 
 
@@ -40,12 +41,9 @@ def graphReponseFreq(x, y, type):
     plt.show()
 
 
-if __name__ == '__main__':
-    workingDirectory = os.getcwd()
-    dir = "WaveFiles"
-    fileName = "note_basson_plus_sinus_1000_Hz.wav"
-    fullpath = f'{workingDirectory}\\{dir}\\{fileName}'
-    fe, data = SPE.ReadWavfile(fullpath)
+def CoupeBande():
+
+    fe, data = SPE.ReadWavfile("note_basson_plus_sinus_1000_Hz.wav")
 
     echantillon = len(data)
     N = 6000
@@ -62,13 +60,13 @@ if __name__ == '__main__':
 
     # h2 = d - 2*(1 / N * (np.sin(np.pi*axen*K / N) / ( np.sin(np.pi*axen / N)))) * np.cos(axen * 1000*np.pi*2 / fe)
     h2info = tranfoPBastoCBande(hinfo, N, d)
+
     H2 = np.fft.fftshift(np.fft.fft(h2info, echantillon))
     graphReponseFreq(axeFrequence, 20 * np.log10(np.abs(H2)), "coupe-bande")
 
-
-    halfh2 = h2info[3000:5999]
-    sonclair = np.convolve(h2info, data)
-    for i in range(0, 8):
-        sonclair = np.convolve(sonclair, h2info)
-
-    write("sonclair.wav", fe, sonclair)
+    son = SignalUtils.HanningWindow(data)
+    sonclair = np.convolve(h2info, son)
+    for i in range(0,3):
+        sonclair = np.convolve(h2info, sonclair)
+    sonclair = sonclair /max(sonclair)
+    write("AudioSynthese\\sonclair.wav", fe, np.array(sonclair).astype(np.float32))

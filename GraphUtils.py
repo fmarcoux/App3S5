@@ -10,12 +10,16 @@ def convert_to_decibel(arr,ref):
 def setDbScale(data,ref):
     return [convert_to_decibel(n,ref) for n in data]
 
-def ShowOnSameGraph(listofData,titles=[],xlim=[0,0],ylim=[0,0],freqNormalise = False):
+
+
+def ShowOnSameGraph(listofData,titles=[],xlim=[0,0],ylim=[0,0],freqNormalise = False,Hz =False):
     for i in range(0,len(listofData)):
         N = len(listofData[i])
         x= np.arange(0,N)
         if(freqNormalise):
             x = [m * 2*np.pi/N for m in x]
+        if(Hz):
+            x = [(m*44100)/N for m in x]
         plt.plot(x,listofData[i])
         if xlim != [0, 0]:
             plt.xlim(xlim)
