@@ -61,13 +61,11 @@ if __name__ == '__main__':
 
     hinfo = SU.reponseImpFiltrePB(N, axen, K)
     Hinfo = np.fft.fftshift(np.fft.fft(hinfo, echantillon))
-    GU.graphReponseFreq(axeFrequence, 20 * np.log10(np.abs(Hinfo)), "passe-bas", [0, 100])
 
     # h2 = d - 2*(1 / N * (np.sin(np.pi*axen*K / N) / ( np.sin(np.pi*axen / N)))) * np.cos(axen * 1000*np.pi*2 / fe)
     h2info = SU.tranfoPBastoCBande(hinfo, N, d)
 
     H2 = np.fft.fftshift(np.fft.fft(h2info, echantillon))
-    GU.graphReponseFreq(axeFrequence, 20 * np.log10(np.abs(H2)), "coupe-bande", [0, 2000])
 
     son = SU.HanningWindow(data)
     sonclair = np.convolve(h2info, son)
