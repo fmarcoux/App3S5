@@ -1,6 +1,4 @@
-from matplotlib import pyplot as plt
 
-import CoupeBande
 import GraphUtils as GU
 import SignalUtils as SU
 import numpy as np
@@ -9,16 +7,11 @@ import scipy.io.wavfile as wav
 if __name__ == '__main__':
 
     Fs, data = SU.ReadWavfile("note_guitare_LAd.wav")
+    N = len(data)
+
     enveloppe = SU.ComputeEnvelope(886, abs(data))
     enveloppe = enveloppe[0:160000]
-    GU.ShowGraphs([enveloppe,data],titles=["Enveloppe temporelle du signal de guitare","Signal de guitare"])
-
-    N = len(data)
-    axem = np.arange(-N / 2, N / 2)
-    axeFrequence = axem * (Fs / N)
-    print(f"{N}, {Fs}")
     indexs, gain, phase = SU.Exctract32Sinus(data)
-    print(f"index :\n {indexs} \n Gain : \n {gain} \n phase : \n{phase}")
 
     freqs = []
     phases = []
@@ -32,23 +25,6 @@ if __name__ == '__main__':
     temps = np.arange(0, N / Fs, 1 / Fs)
 
     LADiese = SU.AddEnveloppeTemporrel(enveloppe, SU.CreateSound(freqs, mags, phases, 1, temps))
-    SinusoidInital = np.fft.fftshift(np.fft.fft(data))
-    SinusoidSynthese = np.fft.fftshift(np.fft.fft(LADiese))
-
-    fig,(ax0,ax2) = plt.subplots(nrows=2,ncols=1)
-    ax0.plot(axeFrequence, 20*np.log10(np.abs((SinusoidInital))))
-    ax0.set_xlabel('Fréquence (Hz)')
-    ax0.set_ylabel('Amplitude (dB)')
-    ax0.set_title('signal original')
-    ax0.scatter(freqs, 20 * np.log10(mags),c="orange")
-
-    ax2.plot(axeFrequence, 20 * np.log10(np.abs((SinusoidSynthese))))
-    ax2.set_xlabel('Fréquence (Hz)')
-    ax2.set_ylabel('Amplitude (dB)')
-    ax2.set_title('signal reconstruit')
-
-    plt.show()
-
     SOL = SU.AddEnveloppeTemporrel(enveloppe, SU.CreateSound(freqs, mags, phases, 0.841, temps))
     MiB = SU.AddEnveloppeTemporrel(enveloppe, SU.CreateSound(freqs, mags, phases, 0.667, temps))
     Silence = np.zeros(N)
@@ -71,7 +47,32 @@ if __name__ == '__main__':
     beethoven.extend(SU.CropForOutput(Fa))
     beethoven.extend(SU.CropForOutput(Fa))
     beethoven.extend(SU.CropForOutput(Re))
-    #GU.ShowGraphs([beethoven])
     wav.write("AudioSynthese\\Beethoven.wav", Fs, np.array(beethoven).astype(np.float32))
 
-    CoupeBande.CoupeBande()
+    fe, data = SU.ReadWavfile("note_basson_plus_sinus_1000_Hz.wav")
+    echantillon = len(data)
+    N = 6000
+    K = int(((2 * 40 * N / fe) + 1))
+    axen = np.arange(-N / 2, N / 2)
+    axem = np.arange(-echantillon / 2, echantillon / 2)
+
+    axeFrequence = axem * (fe / echantillon)
+    d = SU.defineDirac(axen)
+
+    hinfo = SU.reponseImpFiltrePB(N, axen, K)
+    Hinfo = np.fft.fftshift(np.fft.fft(hinfo, echantillon))
+    GU.graphReponseFreq(axeFrequence, 20 * np.log10(np.abs(Hinfo)), "passe-bas", [0, 100])
+
+    # h2 = d - 2*(1 / N * (np.sin(np.pi*axen*K / N) / ( np.sin(np.pi*axen / N)))) * np.cos(axen * 1000*np.pi*2 / fe)
+    h2info = SU.tranfoPBastoCBande(hinfo, N, d)
+
+    H2 = np.fft.fftshift(np.fft.fft(h2info, echantillon))
+    GU.graphReponseFreq(axeFrequence, 20 * np.log10(np.abs(H2)), "coupe-bande", [0, 2000])
+
+    son = SU.HanningWindow(data)
+    sonclair = np.convolve(h2info, son)
+    for i in range(0, 3):
+        sonclair = np.convolve(h2info, sonclair)
+    sonclair = sonclair / max(sonclair)
+
+    wav.write("AudioSynthese\\sonclair.wav", fe, np.array(sonclair).astype(np.float32))

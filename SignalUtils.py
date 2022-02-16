@@ -3,7 +3,9 @@ import scipy.signal as signal
 from scipy.io import wavfile
 import numpy as np
 
+
 def CropForOutput(signal,long=False):
+    "Crop un vecteur pour qu'il soit d'une longeur raisonnable à l'écoute"
     if long:
         return signal[7600:44000]
     else :
@@ -13,11 +15,11 @@ def AddEnveloppeTemporrel(enveloppe,son):
     return (son*enveloppe) /max(enveloppe)
 
 def CreateSound(freq,gain,phase,facteurLa,t):
+    "Crée un son en additionnant les sinus généré par les paramètres freq, gain et phase ainsi que le facteur La# "
     sound = np.zeros(len(t))
     for i in range(0,32):
         sound += gain[i]* np.sin(2 * np.pi * freq[i] * facteurLa* t + phase[i])
     sound = sound / max(gain)
-
     return sound
 
 def ReadWavfile(fileName):
@@ -37,41 +39,6 @@ def HanningWindow(array):
         array[i] = array[i]*hanning[i]
     return array
 
-def computeDirak(N):
-    d= [1]
-    [d.append(0) for i in range(0,N-1)]
-    return d
-
-def passBadVersCoupeBande(h,d,w0,Fs):
-    "w0 est la frequence de passe bande en Hz"
-    wo = 2*np.pi*w0/Fs
-    nh=[]
-    for n in range(0,len(h)-1):
-        nh.append(d[n]+ 2*h[n]*np.cos(n*wo))
-    return nh
-
-def computeRIF(NombreDeCoefficient,cutoffFrequence,sampleFrequence):
-    """calcul la reponse impulsionnel pour un filtre passe bas selon les parametres
-    (N = nombre de coefficients du filtre passe bas)
-    sampleFrequence = la frequence a laquelle le signal a ete echantillone
-    cutofffrequence = la frequence de cutoff voulu
-    retourne la reponse impulsionnel (ndarray)
-    """
-    K = int((2*cutoffFrequence*NombreDeCoefficient)/sampleFrequence)+1
-    reponseImpulsionnelle =[]
-    for i in range(round(-NombreDeCoefficient/2),round(NombreDeCoefficient/2)):
-        if i==0 :
-            reponseImpulsionnelle.append(K/NombreDeCoefficient)
-        else:
-            reponseImpulsionnelle.append(singlePointreponseImpulsionnelle(i,K,NombreDeCoefficient))
-    return np.array(reponseImpulsionnelle)
-
-
-def singlePointreponseImpulsionnelle(n,K,N):
-    u = np.sin((np.pi*n*K)/N)
-    d = np.sin((np.pi*n)/N)
-    return ((1/N)*u/d)
-
 
 def PaddZero(initialData, nombredezero):
     "Padd les data dans initialData avec le nombre de zero specifie en parametre, retourne larray de data padde"
@@ -90,18 +57,46 @@ def computeNForFIRFilterOfTemporalEnvelope():
         print(f"K : {K}")
         print(f"Gain : {gain}")
         K += 1
+    print(K)
 
-def ComputeN():
-    print(computeNForFIRFilterOfTemporalEnvelope())
 
 def ComputeEnvelope(K,data):
-    h= computeRIF(K,np.pi/1000,2*np.pi)
-    return np.convolve(data,h)
+    "Clacul le signal d'enveloppe temporelle"
+    h= np.ones(K)*(1/K)
+    return np.convolve(h,data)
 
 def Exctract32Sinus(data):
+    "Extrait les 32 sinus principales du signal d'entré"
     dataFenetre = HanningWindow(data)
     response = np.fft.fft(dataFenetre)
-    responseDb = 20*np.log10(np.abs(response))
-    peaks = signal.find_peaks(responseDb,distance=1600)
+    peaks = signal.find_peaks(response,distance=1600)
     peaks32 = peaks[0][0:32]
     return peaks32,np.abs(response),np.angle(response)
+
+
+def reponseImpFiltrePB(N, n, K):
+    h = []
+    # h = (1 / N) * (np.sin(np.pi * axen * K / N) / ( np.sin(np.pi * axen / N)))
+    for i in range(0, len(n)):
+        if n[i] == 0:
+            h.append(K / N)
+        else:
+            h.append(np.sin(n[i] * np.pi * K / N) / (N * np.sin(np.pi * n[i] / N)))
+    return h
+
+
+def tranfoPBastoCBande(hpb, N, d):
+    hcb = []
+    for i in range(0, N):
+        hcb.append(d[i] - (2 * hpb[i] * np.cos(0.14248 * i)))
+    return hcb
+
+
+def defineDirac(n):
+    d = np.zeros(len(n))
+    for i in range(0, len(n) - 1):
+        if n[i] == 0:
+            d[i] = 1
+    return d
+
+

@@ -1,32 +1,14 @@
 import matplotlib.pyplot as plt
 import numpy as np
+"Fonctions pour afficher des graphiques"
 
-
-def convert_to_decibel(arr,ref):
-    ref = ref
-    if arr != 0:
-        return 20 * np.log10(abs(arr) / ref)
-
-def setDbScale(data,ref):
-    return [convert_to_decibel(n,ref) for n in data]
-
-
-
-def ShowOnSameGraph(listofData,titles=[],xlim=[0,0],ylim=[0,0],freqNormalise = False,Hz =False):
-    for i in range(0,len(listofData)):
-        N = len(listofData[i])
-        x= np.arange(0,N)
-        if(freqNormalise):
-            x = [m * 2*np.pi/N for m in x]
-        if(Hz):
-            x = [(m*44100)/N for m in x]
-        plt.plot(x,listofData[i])
-        if xlim != [0, 0]:
-            plt.xlim(xlim)
-        elif ylim != [0, 0]:
-            plt.ylim(ylim)
-    if len(titles) > 0:
-        plt.title.set_text(titles[0])
+def graphReponseFreq(x, y, type,xlim=[0,0]):
+    plt.plot(x, y)
+    plt.xlabel('Fréquence (Hz)')
+    plt.ylabel('Gain filtre du ' + type + ' (dB)')
+    plt.title('Réponse frequence ' + type)
+    if xlim!= [0,0]:
+        plt.xlim(xlim)
     plt.show()
 
 def ShowGraphs(listofData,titles=[],xlim=[0,0],ylim=[0,0],type="plot",freqNormalise = False,log=False,Hz=False):
