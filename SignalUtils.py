@@ -76,7 +76,6 @@ def Exctract32Sinus(data):
 
 def reponseImpFiltrePB(N, n, K):
     h = []
-    # h = (1 / N) * (np.sin(np.pi * axen * K / N) / ( np.sin(np.pi * axen / N)))
     for i in range(0, len(n)):
         if n[i] == 0:
             h.append(K / N)

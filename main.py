@@ -1,5 +1,3 @@
-
-import GraphUtils as GU
 import SignalUtils as SU
 import numpy as np
 import scipy.io.wavfile as wav
@@ -62,7 +60,6 @@ if __name__ == '__main__':
     hinfo = SU.reponseImpFiltrePB(N, axen, K)
     Hinfo = np.fft.fftshift(np.fft.fft(hinfo, echantillon))
 
-    # h2 = d - 2*(1 / N * (np.sin(np.pi*axen*K / N) / ( np.sin(np.pi*axen / N)))) * np.cos(axen * 1000*np.pi*2 / fe)
     h2info = SU.tranfoPBastoCBande(hinfo, N, d)
 
     H2 = np.fft.fftshift(np.fft.fft(h2info, echantillon))
